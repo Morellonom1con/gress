@@ -1,24 +1,7 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
-	import ActivityForm from './components/activity-form.svelte';
-	type logEntry = {
-		id: string;
-		progress: number;
-		entry: string;
-		date: Date;
-	};
-
-	type Activity = {
-		id: string;
-		title: string;
-		start: number;
-		goal: number;
-		goalDate: Date;
-		step: number;
-		measure: string;
-		logs: logEntry[];
-	};
-	let activities = $state<Activity[]>([]);
+	import ActivityForm from '../lib/components/activity-form.svelte';
+	import { activities } from '$lib/stores/activities';
 	function addActivity(
 		activityName: string,
 		activityStart: number,
@@ -27,16 +10,20 @@
 		activityStep: number,
 		activityMeasure: string
 	) {
-		activities.push({
-			id: crypto.randomUUID(),
-			title: activityName,
-			start: activityStart,
-			goal: activityGoal,
-			goalDate: activityGoalDate,
-			step: activityStep,
-			measure: activityMeasure,
-			logs: []
-		});
+		activities.update((acts) => [
+			...acts,
+			{
+				id: crypto.randomUUID(),
+				title: activityName,
+				start: activityStart,
+				goal: activityGoal,
+				goalDate: activityGoalDate,
+				step: activityStep,
+				measure: activityMeasure,
+				logs: [],
+				lastLog: new Date()
+			}
+		]);
 	}
 	let showForm = $state(false);
 	function toggleForm() {
@@ -64,12 +51,14 @@
 	<div class="text-gray-700 font-bold px-2">Name</div>
 	<div class="text-gray-700 font-bold px-2">Expected Step</div>
 	<div class="text-gray-700 font-bold px-2">Last Log</div>
-	{#each activities as activity (activity.id)}
+	{#each $activities as activity (activity.id)}
 		<div class="text-white bg-gray-500 space-y-2 px-2">
-			{activity.title}
+			<a href={'/activities/' + activity.id} class="underline hover:text-blue-300">
+				{activity.title}
+			</a>
 		</div>
 		<div class="text-white bg-gray-500 space-y-2 px-2">
-			{activity.lastLog}
+			{activity.lastLog.toLocaleDateString()}
 		</div>
 		<div class="text-white bg-gray-500 space-y-2 px-2">
 			{activity.id}
