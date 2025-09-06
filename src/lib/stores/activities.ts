@@ -1,21 +1,15 @@
 import { writable } from "svelte/store";
-export type logEntry = {
-	id: string;
-	progress: number;
-	entry: string;
-	date: Date;
-};
 
 export type Activity = {
 	id: string;
 	title: string;
 	start: number;
 	goal: number;
-	goalDate: Date;
+	goalDate: string;
 	step: number;
 	measure: string;
-	logs: logEntry[];
-	lastLog: Date;
+	logsID: string[];
+	lastLog: string;
 };
 
 export const activities = writable<Activity[]>([]);
