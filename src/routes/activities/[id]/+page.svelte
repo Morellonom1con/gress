@@ -42,16 +42,35 @@
 	}
 	let canvas: HTMLCanvasElement;
 	onMount(() => {
-		new Chart(canvas, {
-			type: 'line',
+		const ctx = canvas.getContext('2d');
+
+		new Chart(ctx!, {
+			type: 'scatter',
 			data: {
-				labels: ['Start', 'Goal'], // placeholder, replace with activity.logs.map(log => log.datetime)
+				// Scatter dataset for logs
 				datasets: [
 					{
-						label: activity.title,
-						data: [activity.start, activity.goal], // replace with activity.logs.map(log => log.progress)
-						borderColor: 'rgb(75, 192, 192)',
-						tension: 0.3
+						label: 'Logs',
+						data: $logs
+							.filter((log) => activity.logsID.includes(log.id))
+							.map((log) => ({
+								x: new Date(log.datetime),
+								y: log.progress
+							})),
+						backgroundColor: 'rgb(75, 192, 192)'
+					},
+					{
+						label: 'Goal Line',
+						type: 'line',
+						data: [
+							{ x: new Date(), y: activity.start }, // start now
+							{ x: new Date(activity.goalDate), y: activity.goal }
+						],
+						borderColor: 'rgb(255, 99, 132)',
+						borderDash: [5, 5], // dotted
+						fill: false,
+						showLine: true,
+						pointRadius: 0 // hide points for the line
 					}
 				]
 			},
@@ -63,8 +82,16 @@
 					}
 				},
 				scales: {
-					x: { ticks: { color: 'white' } },
-					y: { ticks: { color: 'white' } }
+					x: {
+						type: 'time',
+						time: {
+							unit: 'day'
+						},
+						ticks: { color: 'white' }
+					},
+					y: {
+						ticks: { color: 'white' }
+					}
 				}
 			}
 		});
@@ -97,9 +124,14 @@
 </div>
 <br />
 <br />
-<div class="w-full h-100 bg-slate-500 rounded-xl mp-4 shadow-lg">
+<div
+	class="container mx-auto flex justify-center h-100 bg-slate-500 rounded-xl mp-4 shadow-lg py-10"
+>
 	<canvas bind:this={canvas}></canvas>
 </div>
+
+<br />
+
 <button
 	class="flex items-center justify-center mx-auto bg-slate-500 rounded-full w-10 h-10 text-white"
 	onclick={toggleForm}
@@ -121,24 +153,24 @@
 	</div>
 {/if}
 <br />
-<div class="container mx-auto grid grid-cols-4 gap-x-4 bg-stone-900 px-5 py-5 rounded-sm">
-	<div class="text-stone-400 font-bold px-2 mb-2">Title</div>
-	<div class="text-stone-400 font-bold px-2 mb-2">Progress</div>
-	<div class="text-stone-400 font-bold px-2 mb-2">Entry</div>
-	<div class="text-stone-400 font-bold px-2 mb-2">Date</div>
+<div class="container mx-auto bg-stone-900 px-5 py-5 rounded-sm">
 	{#each $logs.filter((log) => currentActivity.logsID.includes(log.id)) as log (log.id)}
-		<div class="text-white bg-slate-500 px-2 py-3">
-			{log.title}
+		<div class="container bg-slate-500 rounded-sm">
+			<div class="flex justify-between text-white px-4 py-3">
+				<span class="font-bold text-2xl">{log.title}</span>
+				<span>{new Date(log.datetime).toLocaleString()} </span>
+				<span
+					>{log.progress}
+					{currentActivity.measure}
+				</span>
+			</div>
+			<div class="text-white px-4 py-3">
+				{log.comment}
+			</div>
 		</div>
-		<div class="text-white bg-slate-600 px-2 py-3">
-			{log.progress}
-			{currentActivity.measure}
-		</div>
-		<div class="text-white bg-slate-700 px-2 py-3">
-			{log.comment}
-		</div>
-		<div class="text-white bg-slate-800 px-2 py-3">
-			{new Date(log.datetime).toLocaleString()}
-		</div>
+		<hr />
 	{/each}
 </div>
+<br />
+<br />
+<br />
